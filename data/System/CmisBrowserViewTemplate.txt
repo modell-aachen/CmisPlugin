@@ -1,0 +1,415 @@
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1345737498" format="1.1" version="1"}%
+%META:TOPICPARENT{name="CmisPlugin"}%
+%{<verbatim class="tml">}%
+%TMPL:INCLUDE{"view"}%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"sidebar"}%%TMPL:END%
+%TMPL:DEF{"topicactions"}%%TMPL:END%
+%TMPL:DEF{"topicaction"}%%TMPL:END%
+%TMPL:DEF{"revinfo"}%%TMPL:END%
+%TMPL:DEF{"topicinfo"}%%TMPL:END%
+%TMPL:DEF{"top"}%%TMPL:END%
+%TMPL:DEF{"contentheader_container"}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::flags::displaydetails"}%0%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"content"}%<!-- -->
+%TMPL:P{"cmis::performaction"}%<!-- -->
+%TMPL:P{"cmis::header"}%<!-- -->
+%TMPL:P{"cmis::body"}%<!-- -->
+%TMPL:P{"cmis::footer"}%<!-- -->
+%TMPL:P{"cmis::assets"}%<!-- -->
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::header"}%<div class='cmisBrowser jqTooltip'>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::repositories"}%<div class='cmisRepositories foswikiRight'>
+<select class='foswikiSelect'>
+  %CMIS{action="info"
+    format="<option value='$id'>$repositoryName</option>"
+  }%
+</select>
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::performaction"}%%CMIS{
+  action="%URLPARAM{"action" default="nop"}%"
+  object="%URLPARAM{"objectid" default="no such object"}%"
+  checkout_successformat="$percntADDTOZONE{\"head\" text=\"$ltmeta http-equiv='refresh' content='0;$downloadLink' />\"}$percnt"
+  errorformat="<div class='jqUIDialog {modal:true, autoOpen:true, width:\"400\"}' title='%MAKETEXT{"Error"}%'>
+    <div class='foswikiErrorMessage noBreakout'>
+      %MAKETEXT{"Cannot perform action '[_1]' on [_2]: <p><b>$reason</b></p>" args="%URLPARAM{"action" default="nop"}%, $title"}%
+    </div>
+    <a class='jqUIDialogButton jqUIDialogClose {icon:\"ui-icon-circle-check\"}'>%MAKETEXT{"Close"}%</a>
+  </div>"
+  name="%URLPARAM{"name"}%"
+  summary="%URLPARAM{"summary"}%"
+}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::body"}%<!-- -->
+<noautolink>
+%CMIS{
+  %IF{"$'URLPARAM{search}'!=''" 
+    then="query=\"select D.*,SCORE() from cmis:document D where contains(D, '%URLPARAM{"search"}%') order by SEARCH_SCORE desc, D.cmis:name asc\""
+  }%
+  hidenull="off"
+  path="%URLPARAM{"path" default="/"}%"
+  pagesize="10"
+  skip="%URLPARAM{"skip" default="0"}%"
+  format="$percntTMPL:P{\"cmis::toolbar\" 
+      objectid=\"$objectId\"
+      canupdateproperties=\"$canUpdateProperties\"
+      cangetproperties=\"$canGetProperties\"
+      candeleteobject=\"$canDeleteObject\"
+    }$percnt<!-- -->
+    <div class='cmisBreadcrumbs'>$breadcrumbs</div>
+    $percntTMPL:P{\"DIScmis::repositories\"}$percnt<!-- -->
+    <h2>
+      $title
+      <div class='foswikiTopicSummary'>$summary(<br />)</div>
+    </h2>
+    $pager$children$pager"
+  breadcrumbsheader="<b>%MAKETEXT{"You are here"}%:</b> "
+  breadcrumbsformat="<a href='%SCRIPTURLPATH{"view"}%/%WEB%/%TOPIC%?path=$path'>$name</a>"
+  breadcrumbsseparator="&nbsp;&#187; " 
+  childheader="<div class='cmisResults'>"
+  childformat="$percntTMPL:P{
+      \"cmis::format::$percntFORMATLIST{\"$baseTypeId\" split=\":\" reverse=\"on\" limit=\"1\" format=\"$1\"}$percnt\"
+      path=\"$path\"
+      objectid=\"$objectId\"
+      contentStreamMimeType=\"$percntIF{\"'$contentStreamMimeType'=~'^[^$]'\" then=\"$contentStreamMimeType\"}$percnt\"
+      name=\"$name\"
+      versionLabel=\"$versionLabel\"
+      thumbnail=\"$thumbnail\"
+      title=\"$title\"
+      summary=\"$percntENCODE{\"$summary(<br />)\" type=\"quote\"}$percnt\"
+      size=\"$percntIF{\"'$pixelXDimension'=~'^\$'\"
+        then=\"$size\"
+        else=\"$pixelXDimensionx$pixelYDimension\"
+      }$percnt\"
+      objectTypeId=\"$objectTypeId\"
+      modified=\"$formatTime($lastModificationDate)\"
+      modifiedby=\"$percntTMPL:P{\"cmis::userinfo\" name=\"$lastModifiedBy\"}$percnt\"
+      checkedoutby=\"$versionSeriesCheckedOutBy\"
+      ischeckedout=\"$isVersionSeriesCheckedOut\"
+      isimmutable=\"$isImmutable\"
+      contentLink=\"$contentLink\"
+      webdavLink=\"$webdavLink\"
+      canupdateproperties=\"$canUpdateProperties\"
+      candeleteobject=\"$canDeleteObject\"
+      canmoveobject=\"$canMoveObject\"
+      cancheckout=\"$canCheckOut\"
+      cancancelcheckout=\"$canCancelCheckOut\"
+      cangetproperties=\"$canGetProperties\"
+    }$percnt"
+  childfooter="</div>"
+}%
+</noautolink>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::userinfo"}%%IF{
+  "'%USERINFO{"%name%" format="[[%USERSWEB%.$wikiname]]"}%'=''"
+  then="%name%"
+  else="%USERINFO{"%name%" format="[[%USERSWEB%.$wikiname]]"}%"
+}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::format::folder"}%<div class='cmisObject cmisFolder'>
+  <div class='cmisThumbnail foswikiLeft'>
+    %MIMEICON{"directory" size="48"}%
+  </div>
+  <div class='cmisObjectTools foswikiRight'>
+    %IF{"%canupdateproperties%"
+      then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::updateproperties;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Edit properties"}%'>%JQICON{"wrench"}% %MAKETEXT{"Properties"}%</a>"
+    }%<!-- -->
+    %IF{"%cangetproperties% and %TMPL:P{"cmis::flags::displaydetails"}%"
+      then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::properties;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Display properties"}%'>%JQICON{"eye"}% %MAKETEXT{"Details"}%</a>"
+    }%<!-- -->
+    <a href='#'>%JQICON{"page_white_copy"}% %MAKETEXT{"Copy"}%</a>
+    %IF{"%canmoveobject%"
+      then="<a href='#' title='%MAKETEXT{"Move folder"}%'>%JQICON{"page_white_go"}% %MAKETEXT{"Move"}%</a>"
+    }%%IF{"%candeleteobject%"
+      then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::deletefolder;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Delete this folder and all objects in it"}%'>%JQICON{"bin"}% %MAKETEXT{"Delete"}%</a>"
+    }%<!-- -->
+  </div>
+  <div class='cmisObjectInfo'>
+    <div class='cmisObjectName'>
+      <a href='%SCRIPTURLPATH{"view"}%/%BASEWEB%/%BASETOPIC%?path=%path%'>%title%</a> 
+      %IF{"'%size%'!='0'"
+        then="<span class='foswikiGrayText'>(%size%)</span>"
+      }%<!-- -->
+    </div>
+    <div class='cmisVersionInfo'>%MAKETEXT{"Last modified by [_1] on [_2]" args="%modifiedby%,%modified%"}%</div>
+    <div class='foswikiGrayText'>%summary%</div>
+  </div>
+  %CLEAR%
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::format::document"}%<div class='cmisObject cmisDocument'>
+  <div class='cmisThumbnail foswikiLeft'>
+    %IF{"'%thumbnail%'!=''"
+      then="<img src='%thumbnail%' alt='%name%' width='48' />"
+      else="%MIMEICON{"%name%" size="48"}%"
+    }%
+  </div>
+  <div class='cmisObjectTools foswikiRight'>
+    %IF{"%ischeckedout% and %cancancelcheckout%"
+      then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::cancelcheckout;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Cancel editing"}%'>%JQICON{"pencil_delete"}% %MAKETEXT{"Cancel"}%</a>"
+    }%<!-- -->
+    %IF{"%cancheckout%"
+      then="%IF{"'%webdavLink%'!=''" 
+        then="<a href='%webdavLink%' title='%MAKETEXT{"Edit in native application"}%'>%JQICON{"pencil"}% %MAKETEXT{"Edit"}%</a>"
+        else="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::checkout;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Edit offline"}%'>%JQICON{"pencil"}% %MAKETEXT{"Edit"}%</a>"
+      }%"
+    }%<!-- -->
+    %IF{"%canupdateproperties%"
+      then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::updateproperties;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Edit properties"}%'>%JQICON{"wrench"}% %MAKETEXT{"Properties"}%</a>"
+    }%<!-- -->
+    %IF{"%cangetproperties% and %TMPL:P{"cmis::flags::displaydetails"}%"
+      then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::properties;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Display properties"}%'>%JQICON{"eye"}% %MAKETEXT{"Details"}%</a>"
+    }%<!-- -->
+    <a href='#'>%JQICON{"page_white_copy"}% %MAKETEXT{"Copy"}%</a>
+    %IF{"%canmoveobject%"
+      then="<a href='#'>%JQICON{"page_white_go"}% %MAKETEXT{"Move"}%</a>"
+    }%%IF{"%candeleteobject%"
+      then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::deletedocument;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Delete this document"}%'>%JQICON{"bin"}% %MAKETEXT{"Delete"}%</a>"
+    }%<!-- -->
+  </div>
+  <div class='cmisObjectInfo'>
+    <div class='cmisObjectName'>
+      <a href='%contentLink%'>%title%</a> 
+      %IF{"'%size%'!='0'"
+        then="<span class='foswikiGrayText'>(%size%)</span>"
+      }%<!-- -->
+    </div>
+    <div class='cmisVersionInfo'>   
+      %IF{"'%checkedoutby%'!=''"
+        then="<span class='foswikiAlert'>%MAKETEXT{"Locked by [_1]" args="%TMPL:P{"cmis::userinfo" name="%checkedoutby%"}%"}%</span>"
+        else="%IF{"'%versionLabel%'='0.0'"
+          then="%MAKETEXT{"Last modified by [_1] on [_2]" args="%modifiedby%,%modified%"}%"
+          else="%MAKETEXT{"Version [_1] created by [_2] on [_3]" args="%versionLabel%,%modifiedby%,%modified%"}%"
+        }%"
+      }%<!-- -->
+    </div>
+    <div class='foswikiGrayText'>%summary%</div>
+  </div>
+  %CLEAR%
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::toolbar"}%<div class='cmisToolbar'>
+  <a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::createfolder;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Create a new folder"}%'>%JQICON{"folder_add"}% %MAKETEXT{"New folder"}%</a>
+  <a href='#'>%JQICON{"page_white_get"}% %MAKETEXT{"Upload"}%</a>
+  %IF{"%cangetproperties% and %TMPL:P{"cmis::flags::displaydetails"}%"
+    then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::properties;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Display properties"}%'>%JQICON{"eye"}% %MAKETEXT{"Details"}%</a>"
+  }%%IF{"%canupdateproperties%"
+    then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::updateproperties;objectid=%objectid%;path=$path;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Edit properties"}%'>%JQICON{"wrench"}% %MAKETEXT{"Properties"}%</a>"
+  }%<!-- -->
+</div>
+%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::assets"}%<!-- -->
+%ADDTOZONE{
+  "head"
+  text="<link rel='stylesheet' href='%PUBURLPATH%/%SYSTEMWEB%/CmisPlugin/cmisplugin.css' media='all' />"
+}%<!-- -->
+%ADDTOZONE{
+  "script"
+  text="<script src='%PUBURLPATH%/%SYSTEMWEB%/CmisPlugin/cmisplugin.js'></script>"
+  requires="JQUERYPLUGIN"
+}%<!-- -->
+%JQREQUIRE{"ui::dialog, tooltip"}%<!-- -->%TMPL:END%
+%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::dialogs::properties"}%%CMIS{
+  object="%URLPARAM{"objectid" default="no such object"}%"
+  format="<div class='jqUIDialog {modal:false, draggable:true, resizable:false, position:\"center\", width:\"auto\"}' title='%MAKETEXT{"Properties of [_1]" args="$title"}%' style='max-height:300px'>
+    $properties
+    <a class='jqUIDialogButton jqUIDialogClose {icon:\"ui-icon-circle-check\"}'>%MAKETEXT{"Close"}%</a>
+  </div>"
+  propheader="<table class='foswikiLayoutTable'>"
+  propfooter="</table>"
+  propformat="<tr><th valign='top'>$origkey</th><td valign='top'>$value</td></tr>$n"
+  creationDate_format="<tr><th valign='top'>$origkey</th><td valign='top'>$formatTime($value)</td></tr>$n"
+  lastModificationDate_format="<tr><th valign='top'>$origkey</th><td valign='top'>$formatTime($value)</td></tr>$n"
+}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::dialogs::cancelcheckout"}%<!-- -->
+<div class="jqUIDialog foswikiFormSteps {modal:true, draggable:true, width:350}" title="%MAKETEXT{"Cancel checkout?"}%">
+  <form action="%SCRIPTURLPATH{"view"}%/%WEB%/%TOPIC%" method="post">
+    %CMIS{
+      object="%URLPARAM{"objectid" default="no such object"}%"
+      format="<input type='hidden' name='path' value='$parent' />
+        <input type='hidden' name='action' value='cancelcheckout' />
+        <input type='hidden' name='objectid' value='%URLPARAM{"objectid"}%' />
+        <div class='cmisThumbnail foswikiRight'>
+          $percntIF{\"'$thumbnail'!=''\"
+            then=\"<img src='$thumbnail' alt='$name' />\"
+            else=\"$percntMIMEICON{\"$name\" size=\"48\"}$percnt\"
+          }$percnt
+        </div>
+        <div class='foswikiFormStep noBreakout'>
+          %MAKETEXT{"Are you sure that you want to cancel editing of [_1]?" args="<b>$title</b>"}%
+        </div>"
+    }%
+    <a class="jqUIDialogButton jqUIDialogSubmit {icon:'ui-icon-circle-check'}">%MAKETEXT{"Yes, cancel"}%</a> 
+    <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"No, thanks"}%</a> 
+  </form>
+  %CLEAR%
+</div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::dialogs::checkout"}%<!-- -->
+<div class="jqUIDialog foswikiFormSteps {modal:true, draggable:true, width:350}" title="%MAKETEXT{"Checkout?"}%">
+  <form action="%SCRIPTURLPATH{"view"}%/%WEB%/%TOPIC%" method="post">
+    %CMIS{
+      object="%URLPARAM{"objectid" default="no such object"}%"
+      format="<input type='hidden' name='path' value='$parent' />
+        <input type='hidden' name='action' value='checkout' />
+        <input type='hidden' name='objectid' value='%URLPARAM{"objectid"}%' />
+        <div class='cmisThumbnail foswikiRight'>
+          $percntIF{\"'$thumbnail'!=''\"
+            then=\"<img src='$thumbnail' alt='$name' />\"
+            else=\"$percntMIMEICON{\"$name\" size=\"48\"}$percnt\"
+          }$percnt
+        </div>
+        <div class='foswikiFormStep noBreakout'>
+          %MAKETEXT{"Are you sure that you want to check out [_1]?" args="<b>$title</b>"}%
+        </div>"
+    }%
+    <a class="jqUIDialogButton jqUIDialogSubmit {icon:'ui-icon-circle-check'}">%MAKETEXT{"Yes, check out"}%</a> 
+    <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"No, thanks"}%</a> 
+  </form>
+  %CLEAR%
+</div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::dialogs::deletedocument"}%<!-- -->
+<div class="jqUIDialog foswikiFormSteps {modal:true, draggable:true, width:350}" title="%MAKETEXT{"Delete?"}%">
+  <form action="%SCRIPTURLPATH{"view"}%/%WEB%/%TOPIC%" method="post">
+    %CMIS{
+      object="%URLPARAM{"objectid" default="no such object"}%"
+      format="<input type='hidden' name='path' value='$parent' />
+        <input type='hidden' name='action' value='delete' />
+        <input type='hidden' name='objectid' value='%URLPARAM{"objectid"}%' />
+        <div class='cmisThumbnail foswikiRight'>
+          $percntIF{\"'$thumbnail'!=''\"
+            then=\"<img src='$thumbnail' alt='$name' />\"
+            else=\"$percntMIMEICON{\"$name\" size=\"48\"}$percnt\"
+          }$percnt
+        </div>
+        <div class='foswikiFormStep noBreakout'>
+          %MAKETEXT{"Are you sure that you want to delete [_1]?" args="<b>$title</b>"}%
+        </div>"
+    }%
+    <a class="jqUIDialogButton jqUIDialogSubmit {icon:'ui-icon-trash'}">%MAKETEXT{"Yes, delete"}%</a> 
+    <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"No, thanks"}%</a> 
+  </form>
+  %CLEAR%
+</div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::dialogs::deletefolder"}%<!-- -->
+<div class="jqUIDialog foswikiFormSteps {modal:true, draggable:true, width:350}" title="%MAKETEXT{"Delete?"}%">
+  <form action="%SCRIPTURLPATH{"view"}%/%WEB%/%TOPIC%" method="post">
+    %CMIS{
+      object="%URLPARAM{"objectid" default="no such object"}%"
+      format="<input type='hidden' name='path' value='$parent' />
+        <input type='hidden' name='action' value='delete' />
+        <input type='hidden' name='objectid' value='%URLPARAM{"objectid"}%' />
+        <div class='cmisThumbnail foswikiRight'>
+          %MIMEICON{"directory" size="48"}%
+        </div>
+        <div class='foswikiFormStep noBreakout'>
+          %MAKETEXT{"Are you sure that you want to delete folder [_1] and all of its document?" args="<p><b>$title</b></p>"}%
+        </div>"
+    }%
+    <a class="jqUIDialogButton jqUIDialogSubmit {icon:'ui-icon-trash'}">%MAKETEXT{"Yes, delete"}%</a> 
+    <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"No, thanks"}%</a> 
+  </form>
+</div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::dialogs::createfolder"}%<!-- -->
+<div class="jqUIDialog foswikiFormSteps {modal:true, draggable:true, width:'auto'}" title="%MAKETEXT{"Create a new folder"}%">
+  <form action="%SCRIPTURLPATH{"view"}%/%WEB%/%TOPIC%" method="post">
+    %CMIS{
+      object="%URLPARAM{"objectid" default="no such object"}%"
+      format="<input type='hidden' name='path' value='$path' />
+      <input type='hidden' name='action' value='createfolder' />
+      <input type='hidden' name='objectid' value='%URLPARAM{"objectid"}%' />"
+    }%
+    <div class='foswikiFormStep'>
+      <h3>%MAKETEXT{"Name"}%:</h3>
+      <input type='text' class='foswikiInputField' name='name' size='80' style='width:30em' />
+    </div>
+    <div class='foswikiFormStep'>
+      <h3>%MAKETEXT{"Summary"}%:</h3>
+      <textarea class='foswikiTextarea' name='summary' rows='5' cols='50' style='width:30em'></textarea>
+    </div>
+    <a class="jqUIDialogButton jqUIDialogSubmit {icon:'ui-icon-circle-check'}">%MAKETEXT{"Submit"}%</a> 
+    <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"Cancel"}%</a> 
+  </form>
+  %CLEAR%
+</div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::dialogs::updateproperties"}%<!-- -->
+<div class="jqUIDialog foswikiFormSteps {modal:true, draggable:true, width:'auto'}" title="%MAKETEXT{"Edit properties"}%">
+  <form action="%SCRIPTURLPATH{"view"}%/%WEB%/%TOPIC%" method="post">
+    %CMIS{
+      object="%URLPARAM{"objectid" default="no such object"}%"
+      format="<input type='hidden' name='path' value='%URLPARAM{"path" default="$parent"}%' />
+      <input type='hidden' name='action' value='updateproperties' />
+      <input type='hidden' name='objectid' value='%URLPARAM{"objectid"}%' />
+      <div class='foswikiFormStep'>
+        <h3>%MAKETEXT{"Name"}%:</h3>
+        <input type='text' class='foswikiInputField' name='name' size='80' style='width:30em' value='$name' />
+      </div>
+      <div class='foswikiFormStep'>
+        <h3>%MAKETEXT{"Summary"}%:</h3>
+        <textarea class='foswikiTextarea' name='summary' rows='5' cols='50' style='width:30em'>$summary</textarea>
+      </div>"
+    }%
+    <a class="jqUIDialogButton jqUIDialogSubmit {icon:'ui-icon-circle-check'}">%MAKETEXT{"Submit"}%</a> 
+    <a class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"Cancel"}%</a> 
+  </form>
+  %CLEAR%
+</div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%

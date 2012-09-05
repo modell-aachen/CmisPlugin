@@ -1,0 +1,83 @@
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1346066168" format="1.1" version="1"}%
+---+!! %TOPIC%
+%SHORTDESCRIPTION%
+
+CMIS (Content Management Interoperability Services) is an OASIS standard for
+improving interoperability between Enterprise Content Management systems. This
+plugin offers CMIS client bindings to access data stored in an ECM server
+like Alfresco, Documentum, Nuxeo or Sharepoint in a standardised way.
+
+!%TOPIC% allows to access multiple repositories at the same time using the CMIS 1.0 protocol.
+
+%TOC%
+
+---++ Usage
+
+---++ Syntax
+
+=%CMIS<nop>{action="..." params}%=
+
+| *Parameter* | *Description* | *Default* |
+| action | specifies the action to be performed; can be one of =info, query, objectbypath, objectbyid, checkout, cancelcheckout= | |
+| connection | id of a preconfigured connection to a document management system | =$Foswiki::cfg{CmisPlugin}{DefaultConnection}= |
+| repository | | |
+| header | | | 
+| format | | | 
+| separator | | | 
+| footer | | | 
+| sort | | |
+| hidenull | | |
+| errorformat | | |
+| successformat | | |
+| parentheader | | |
+| parentformat | | |
+| parentseparator | | |
+| parentfooter | | |
+| childheader | | |
+| childformat | | |
+| childseparator | | |
+| childfooter | | |
+| propheader | | | 
+| propformat | | | 
+| propseparator | | | 
+| propfooter | | | 
+| propinclude | | | 
+| propexclude | | | 
+| *object-by-path parameters* |||
+| path | | |
+| *object-by-id parameters* |||
+| object | | |
+| *query parameters* |||
+| query | | |
+| skip | | | 
+| pagesize | | | 
+| limit | | | 
+
+---++ action="info"
+---++ action="query"
+---++ action="objectbypath"
+---++ action="objectbyid"
+
+---++ Installation Instructions
+
+You do not need to install anything in the browser to use this extension. The following instructions are for the administrator who installs the extension on the server.
+
+Open configure, and open the "Extensions" section. Use "Find More Extensions" to get a list of available extensions. Select "Install".
+
+If you have any problems, or if the extension isn't available in =configure=, then you can still install manually from the command-line. See http://foswiki.org/Support/ManuallyInstallingExtensions for more help.
+
+
+---++ Info
+<!--
+   * Set SHORTDESCRIPTION = CMIS for Foswiki
+-->
+
+|  Author(s): | Michael Daum|
+|  Copyright: | &copy; 2010 Michael Daum http://michaeldaumconsulting.com |
+|  License: | [[http://www.gnu.org/licenses/gpl.html][GPL (Gnu General Public License)]] |
+|  Release: | 0.02 |
+|  Version: | 20120831 (2012-08-31) |
+|  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  Dependencies: | <table class="foswikiTable" border="1"><tr><th>Name</th><th>Version</th><th>Description</th></tr><tr><td align="left">Foswiki::Plugins::RenderPlugin</td><td align="left">&gt;=3.01</td><td align="left">Required.</td></tr><tr><td align="left">LWP::UserAgent'</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">REST::Client</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">URI</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">WebService::Cmis</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">XML::LibXML'</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">Cache::FileCache</td><td align="left">&gt;0</td><td align="left">Required.</td></tr></table> |
+|  Home page: | Foswiki:Extensions/%TOPIC% |
+|  Support: | Foswiki:Support/%TOPIC% |

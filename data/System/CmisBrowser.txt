@@ -1,0 +1,7 @@
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1345737525" format="1.1" version="1"}%
+%META:TOPICPARENT{name="CmisPlugin"}%
+
+   * #Set SKIN = pattern
+
+%META:PREFERENCE{name="TOPICTITLE" title="TOPICTITLE" type="Local" value="Cmis Browser"}%
+%META:PREFERENCE{name="VIEW_TEMPLATE" title="VIEW_TEMPLATE" type="Set" value="CmisBrowserView"}%
