@@ -24,17 +24,21 @@ $Foswiki::cfg{CmisPlugin}{DefaultConnection} = '';
 # (5) webdavUrl- the access point from where a document can be edited in a native application using webdav
 # (6) cacheExpires - the maximum time an entry is kept fresh in the cache
 # (7) overrideCacheControl - if enabled, any cache control of the CMIS backend will be ignored in favor of
+# (8) loginUrl - REST api to aquire a transaction ticket 
+# (9) logoutUrl - REST api to delete a transaction ticket during logout
 # more performance but with the disadvantage of missing some updates due to caching more aggressively at
 # the client side.
 $Foswiki::cfg{CmisPlugin}{Connections} = {
   alfresco => {
     url => "http://localhost:8080/alfresco/service/cmis",
-    user => "proxy",
-    password => "proxy",
+    user => "...",
+    password => "...",
     repositoryId => undef,
     webdavUrl => 'webdav://$host:8080/alfresco/webdav/$path/$name'
     cacheExpires => '10 minutes',
-    overrideCacheControl => 0
+    overrideCacheControl => 0,
+    loginUrl => "http://localhost:8080/alfresco/service/api/login?u={username}&pw={password}",
+    logoutUrl => "http://localhost:8080/alfresco/service/api/login/ticket/{ticket}",
   },
   alfresco_demo => {
     url => "http://cmis.alfresco.com/service/cmis",
@@ -43,7 +47,9 @@ $Foswiki::cfg{CmisPlugin}{Connections} = {
     repositoryId => undef,
     webdavUrl => 'webdav://cmis.alfresco.com/webdav/$path/$name'
     cacheExpires => '10 minutes',
-    overrideCacheControl => 1
+    overrideCacheControl => 1,
+    loginUrl => "http://localhost:8080/alfresco/service/api/login?u={username}&pw={password}",
+    logoutUrl => "http://localhost:8080/alfresco/service/api/login/ticket/{ticket}",
   }
 };
 

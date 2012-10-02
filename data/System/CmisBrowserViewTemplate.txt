@@ -16,6 +16,8 @@
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"cmis::flags::displaydetails"}%0%TMPL:END%
+%TMPL:DEF{"cmis::flags::displaycopy"}%0%TMPL:END%
+%TMPL:DEF{"cmis::flags::displaymove"}%0%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -30,6 +32,10 @@
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"cmis::header"}%<div class='cmisBrowser jqTooltip'>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::footer"}%</div>%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -141,8 +147,10 @@
     %IF{"%cangetproperties% and %TMPL:P{"cmis::flags::displaydetails"}%"
       then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::properties;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Display properties"}%'>%JQICON{"eye"}% %MAKETEXT{"Details"}%</a>"
     }%<!-- -->
-    <a href='#'>%JQICON{"page_white_copy"}% %MAKETEXT{"Copy"}%</a>
-    %IF{"%canmoveobject%"
+    %IF{"%TMPL:P{"cmis::flags::displaycopy"}%"
+      then="<a href='#'>%JQICON{"page_white_copy"}% %MAKETEXT{"Copy"}%</a>"
+    }%<!-- -->
+    %IF{"%canmoveobject% and %TMPL:P{"cmis::flags::displaymove"}%"
       then="<a href='#' title='%MAKETEXT{"Move folder"}%'>%JQICON{"page_white_go"}% %MAKETEXT{"Move"}%</a>"
     }%%IF{"%candeleteobject%"
       then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::deletefolder;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Delete this folder and all objects in it"}%'>%JQICON{"bin"}% %MAKETEXT{"Delete"}%</a>"
@@ -186,8 +194,10 @@
     %IF{"%cangetproperties% and %TMPL:P{"cmis::flags::displaydetails"}%"
       then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::properties;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Display properties"}%'>%JQICON{"eye"}% %MAKETEXT{"Details"}%</a>"
     }%<!-- -->
-    <a href='#'>%JQICON{"page_white_copy"}% %MAKETEXT{"Copy"}%</a>
-    %IF{"%canmoveobject%"
+    %IF{"%TMPL:P{"cmis::flags::displaycopy"}%"
+      then="<a href='#'>%JQICON{"page_white_copy"}% %MAKETEXT{"Copy"}%</a>"
+    }%<!-- -->
+    %IF{"%canmoveobject% and %TMPL:P{"cmis::flags::displaymove"}%"
       then="<a href='#'>%JQICON{"page_white_go"}% %MAKETEXT{"Move"}%</a>"
     }%%IF{"%candeleteobject%"
       then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::deletedocument;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Delete this document"}%'>%JQICON{"bin"}% %MAKETEXT{"Delete"}%</a>"
@@ -218,7 +228,7 @@
 %{<verbatim class="tml">}%
 %TMPL:DEF{"cmis::toolbar"}%<div class='cmisToolbar'>
   <a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::createfolder;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Create a new folder"}%'>%JQICON{"folder_add"}% %MAKETEXT{"New folder"}%</a>
-  <a href='#'>%JQICON{"page_white_get"}% %MAKETEXT{"Upload"}%</a>
+  <a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::upload;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink {cache:false}' title='%MAKETEXT{"Upload documents"}%'>%JQICON{"page_white_get"}% %MAKETEXT{"Upload"}%</a>
   %IF{"%cangetproperties% and %TMPL:P{"cmis::flags::displaydetails"}%"
     then="<a href='%SCRIPTURL{"rest"}%/RenderPlugin/template?name=CmisBrowserView;expand=cmis::dialogs::properties;objectid=%objectid%;topic=%WEB%.%TOPIC%;t=%GMTIME{"$epoch"}%' class='jqUIDialogLink' title='%MAKETEXT{"Display properties"}%'>%JQICON{"eye"}% %MAKETEXT{"Details"}%</a>"
   }%%IF{"%canupdateproperties%"
@@ -239,7 +249,7 @@
   text="<script src='%PUBURLPATH%/%SYSTEMWEB%/CmisPlugin/cmisplugin.js'></script>"
   requires="JQUERYPLUGIN"
 }%<!-- -->
-%JQREQUIRE{"ui::dialog, tooltip"}%<!-- -->%TMPL:END%
+%JQREQUIRE{"ui::dialog, tooltip, uploader"}%<!-- -->%TMPL:END%
 %TMPL:END%
 %{</verbatim>}%
 
@@ -256,6 +266,48 @@
   creationDate_format="<tr><th valign='top'>$origkey</th><td valign='top'>$formatTime($value)</td></tr>$n"
   lastModificationDate_format="<tr><th valign='top'>$origkey</th><td valign='top'>$formatTime($value)</td></tr>$n"
 }%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"cmis::dialogs::upload"}%<!-- -->
+<div class="jqUIDialog foswikiFormSteps cmisUploader {modal:true, draggable:true, width:700}" title="%MAKETEXT{"Upload documents"}%">
+  <form>
+    <input type="hidden" name="target" value="%URLPARAM{"objectid"}%" />
+    <div class="foswikiFormStep">
+      <div class="jqUploaderFilesContainer">
+        <div class="jqUploaderDropText">%MAKETEXT{"Drag files here"}%</div>
+        <table class="jqUploaderFiles"></table>
+      </div>
+    </div>
+    <div class="foswikiFormStep">
+      <h3>%MAKETEXT{"Comment"}%:</h3>
+      <input type="text" size="50" class="foswikiInputField jqUploaderComment" name="filecomment" />
+      <div class="foswikiFormDescription">
+        %MAKETEXT{"This comment will be added to every uploaded file."}%
+      </div>
+    </div>
+    <a href="#" class="jqUIDialogButton {icon:'ui-icon-folder-collapsed'}">%MAKETEXT{"Choose files"}%</a> 
+    <a href="#" class="jqUIDialogButton {icon:'ui-icon-circle-check'}">%MAKETEXT{"Submit"}%</a> 
+    <a href="#" class="jqUIDialogButton jqUIDialogClose {icon:'ui-icon-cancel'}">%MAKETEXT{"Cancel"}%</a> 
+  </form>
+  %CLEAR%
+</div>
+<literal>
+<script>
+jQuery(function($) {
+  $(".cmisUploader").bind("dialogopen", function() {
+    var $this = $(this), $parent = $this.parent();
+    $parent.find(".ui-button:eq(0)").addClass("jqUploaderBrowse").css({zIndex:2000});
+    $parent.find(".ui-button:eq(1)").addClass("jqUploaderStart");
+    $parent.addClass("jqUploader {" +
+      "url: '"  + foswiki.getPreference('SCRIPTURL') + "/jsonrpc/CmisPlugin/upload', " +
+      "success: function() { window.location.reload() }" +
+    "}");
+  });
+});
+</script>
+</literal>
+%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%

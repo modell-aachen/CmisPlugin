@@ -127,3 +127,14 @@
   color:#fff;
   text-decoration:none;
 }
+.foswikiFormSteps {
+  border:0;
+}
+.foswikiFormStep {
+  border:0;
+  margin:0 0 1.385em 0;
+  padding:0;
+}
+.foswikiFormStep:last-child {
+  margin:0;
+}

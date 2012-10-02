@@ -25,9 +25,10 @@ use warnings;
 =cut
 
 use Foswiki::Func ();
+use Foswiki::Contrib::JsonRpcContrib ();
 
-our $VERSION = '$Rev: 20120831 (2012-08-31) $';
-our $RELEASE = '0.02';
+our $VERSION = '$Rev: 20121001 (2012-10-01) $';
+our $RELEASE = '1.00';
 our $SHORTDESCRIPTION = 'CMIS for Foswiki';
 our $NO_PREFS_IN_TOPIC = 1;
 our $core;
@@ -46,6 +47,11 @@ sub initPlugin {
 
   Foswiki::Func::registerTagHandler('CMISTREE', sub {
     return getCore()->handleCMISTREE(@_);
+  });
+
+  Foswiki::Contrib::JsonRpcContrib::registerMethod("CmisPlugin", "upload", sub {
+    shift;
+    return getCore()->jsonRpcUpload(@_);
   });
 
   $ENV{CMIS_DEBUG} = 1 if $Foswiki::cfg{CmisPlugin}{Debug} && $Foswiki::cfg{CmisPlugin}{Debug} > 1;

@@ -24,6 +24,7 @@ package Foswiki::Plugins::CmisPlugin::Core;
 use strict;
 use warnings;
 
+use Encode ();
 use Error qw(:try);
 use WebService::Cmis ();
 use Foswiki::Func ();
@@ -40,6 +41,7 @@ our %classOfAction = (
   'objectbypath' => 'Foswiki::Plugins::CmisPlugin::Action::ObjectByPath',
   'query' => 'Foswiki::Plugins::CmisPlugin::Action::Query',
   'updateproperties' => 'Foswiki::Plugins::CmisPlugin::Action::UpdateProperties',
+  'upload' => 'Foswiki::Plugins::CmisPlugin::Action::Upload',
 );
 
 =begin TML
@@ -105,6 +107,7 @@ sub handleCMISTREE {
     $result = Foswiki::Plugins::CmisPlugin::CmisTree::doit($this, $session, $params, $theTopic, $theWeb);
   } catch Error::Simple with {
     $error = shift;
+    $error =~ s/ at .*$//;
   };
 
   return _inlineError($error) if defined $error;
@@ -123,7 +126,7 @@ implementation of this macro
 sub handleCMIS {
   my ($this, $session, $params, $theTopic, $theWeb) = @_;
 
-  _writeDebug("called CMIS(".$params->stringify.")");
+  #_writeDebug("called CMIS(".$params->stringify.")");
   my $theAction = $params->{action};
   $this->{_session} = $session;
 
@@ -143,11 +146,30 @@ sub handleCMIS {
   my $result;
   try {
     $result = $handler->doit($theWeb, $theTopic, $params);
+    $result = _fromUtf8($result);
   } otherwise {
-    $result = _inlineError(shift);
+    my $error = shift;
+    $error =~ s/ at .*$//;
+    $result = _inlineError($error);
   };
 
   return $result;
+}
+
+=begin TML
+
+---++ ObjectMethod jsonRpcUpload
+
+=cut
+
+sub jsonRpcUpload {
+  my ($this, $request) = @_;
+
+  my $handler = $this->getHandler("upload");
+  throw Error::Simple("can't get uploader")
+    unless defined $handler;
+
+  return $handler->jsonRpcUpload($request);
 }
 
 =begin TML
@@ -221,6 +243,15 @@ sub getClient {
     }
 
     $client = WebService::Cmis::getClient(%$conn);
+
+    my $user = Foswiki::Func::getWikiName();
+    $user = Foswiki::Func::wikiToUserName($user);
+
+    my $ticket = Foswiki::Func::getSessionValue("CMIS_TICKET");
+    $client->login(
+      user => $user,
+      ticket => $ticket
+    ) if defined $ticket;
 
     my $query = Foswiki::Func::getRequestObject();
     my $refresh = $query->param('refresh') || '';
@@ -314,5 +345,13 @@ sub _inlineError {
   return "<span class='foswikiAlert'>$_[0]</span>";
 }
 
+sub _fromUtf8 {
+  my $string = shift;
+
+  $string = Encode::decode_utf8($string);
+  $string = Encode::encode($Foswiki::cfg{Site}{CharSet}, $string);
+
+  return $string;
+}
 
 1;

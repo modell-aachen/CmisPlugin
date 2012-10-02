@@ -1,62 +1,264 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1346066168" format="1.1" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1348496081" format="1.1" reprev="7" version="1"}%
 ---+!! %TOPIC%
 %SHORTDESCRIPTION%
+
+%TOC%
 
 CMIS (Content Management Interoperability Services) is an OASIS standard for
 improving interoperability between Enterprise Content Management systems. This
 plugin offers CMIS client bindings to access data stored in an ECM server
 like Alfresco, Documentum, Nuxeo or Sharepoint in a standardised way.
 
-!%TOPIC% allows to access multiple repositories at the same time using the CMIS 1.0 protocol.
+<nop>%TOPIC% allows to access multiple repositories at the same time using the CMIS 1.0 protocol.
 
-%TOC%
+---++ Screenshots
+
+%JQREQUIRE{"slimbox"}%
+<div class="jqSlimbox">
+   <div class="foswikiImage foswikiLeft">
+     <a href="%ATTACHURLPATH%/CmisPluginSnap1.png"><img src="%ATTACHURLPATH%/CmisPluginSnap1.png" width="130" /></a>
+   </div>
+   <div class="foswikiImage foswikiLeft">
+     <a href="%ATTACHURLPATH%/CmisPluginSnap2.png"><img src="%ATTACHURLPATH%/CmisPluginSnap2.png" width="130" /></a>
+   </div>
+   <div class="foswikiImage foswikiLeft">
+     <a href="%ATTACHURLPATH%/CmisPluginSnap3.png"><img src="%ATTACHURLPATH%/CmisPluginSnap3.png" width="130" /></a>
+   </div>
+   <div class="foswikiImage foswikiLeft">
+     <a href="%ATTACHURLPATH%/CmisPluginSnap4.png"><img src="%ATTACHURLPATH%/CmisPluginSnap4.png" width="130" /></a>
+   </div>
+   <div class="foswikiImage foswikiLeft">
+     <a href="%ATTACHURLPATH%/CmisPluginSnap5.png"><img src="%ATTACHURLPATH%/CmisPluginSnap5.png" width="130" /></a>
+   </div>
+   <div class="foswikiImage foswikiLeft">
+     <a href="%ATTACHURLPATH%/CmisPluginSnap6.png"><img src="%ATTACHURLPATH%/CmisPluginSnap6.png" width="130" /></a>
+   </div>
+</div>
+
+%CLEAR%
+
+---++ Configuration
+
+Head over to your Foswiki's [[%SCRIPTURL{"configure"}%][configure]] and go to the <nop>%TOPIC% section.
+
+Beyond others the most important setting is the =$Foswiki::cfg{CmisPlugin}{Connections}= variable.
+This is a collection of connections to CMIS repositories users can chose from using the =%CMIS= macro.
+Each one has got a unique id that refers to this connection. For instance, =%CMIS!{connection="alfresco"...}%=
+will interact with the depicted connection setting stored in your Foswiki configuration.
+
+A connection setting might look like this:
+
+<verbatim>
+$Foswiki::cfg{CmisPlugin}{Connections} = {
+...
+  alfresco => {
+    url => "http://localhost:8080/alfresco/service/cmis",
+    user => "...",
+    password => "...",
+    cacheExpores => "...",
+    ...
+  },
+  xcmis => {
+    url => "...",
+    ...
+  },
+  ...
+};
+</verbatim>
+
+This will configure access to a local Alfresco instance available on port 8080.
+
+Known entries in the configurations are:
+
+| *Name* | *Description* | *Example* |
+| url | address of the CMIS endpoint | <nop>http://localhost:8080/... |
+| user | default account to be used (see notes on authentication below) | sam |
+| password | the default user's password | secretsecret |
+| repositoryId | the name of the repository; leave undefined to use the default repository | |
+| webdavUrl | the access point from where a document can be edited in a native application using webdav (see notes on webdav below) | <nop>edit://$host:8080/alfresco/webdav/$path/$name |
+| cacheExpires | the maximum time an entry is kept fresh in the cache | 1 hour |
+| overrideCacheControl | if enabled, any cache control of the CMIS backend will be ignored in favor of \
+                         more performance but with the disadvantage of missing some updates due to caching more aggressively at \
+                         the client side. | 0 |
+| loginUrl | REST api to aquire a transaction ticket; ={username}= and ={password}= will be replaced with current information when a user logs in to Foswiki | <nop>http://localhost:8080/alfresco/service/api/login?u={username}&pw={password} |
+| logoutUrl | REST api to delete a transaction ticket during logout; ={ticket}= will be replaced with the ticket to be deleted | <nop>http://localhost:8080/alfresco/service/api/login/ticket/{ticket} |
+
+---++ Authentication
+
+<nop>%TOPIC% is able to log in users to the CMIS backend transparently when they log in to Foswiki. This however is only possible
+under certain circumstances. Currently, this heavily is based on the Alfresco kind of ticket based authentication where
+all transactions with the CMIS server are carried out on behalf of the user given a valid ticket being added to the serivce call.
+This ticket is aquired when a user logs in to Foswiki _using the <nop>TemplateLogin_ login manager. This login manager will
+take the user & password information for both to authenticate against Foswiki _and_ the CMIS server. This of course only makes
+sense when both have been configured to use the same user base as it is the case using LDAP. See [[Foswiki:Extensions/LdapContrib][LdapContrib]]
+for a full LDAP integration for Foswiki. 
+
+Once both Foswiki and your CMIS server have been configured to use LDAP and both use the same login names, head over to [[%SCRIPTURL{"configure"}%][configure]]
+again and switch on the =CmisLogin= login manager which will then forward the user credentials to aquire a transaction ticket. Any CMIS action
+with the server will then make use of it.
+
+To aquire a transaction ticket, <nop>CmisPlugin needs to know which REST api is available to do that. This is done using the =loginUrl= and =logoutUrl= 
+connection settings as described above. Only then will ticket based authentication be switched on.
+
+If forwarding authentication failed or when you did not configure ticket based authentication, the default =user= and =password= credentials will
+be used to interact with the CMIS server.
+
+%TODO% when your CMIS repository isn't able to perform ticket based authentication, <nop>CmisPlugin might store the user's credentials as part of the
+session. This is inherently dangerous, yet still an approach taken by some other CMS systems (like liferay). A better idea would be to implement
+a sort of "wallet" system that will store user credentials in a way that Foswiki can still perform actions on behalf of the user contacting third party systems 
+like a document management system or an IMAP account.
+
+%TODO% explore other single sign on methods.
 
 ---++ Usage
 
+Once you have configured CMIS, head over to the [[%SYSTEMWEB%.CmisBrowser][CMIS browser]] that will allow you
+to interact with your default repository.
+
+See the [[%SYSTEMWEB%.CmisBrowserViewTemplate]] for a detailed look at the implementation of the CMIS browser.
+
 ---++ Syntax
+
+<nop>%TOPIC% allows you to access CMIS data from within your wiki applications using the %CMIS macro. That way you can search and filter through
+directory folders and display information of documents. The %CMIS macro can perform faviours different actions:
+
+   * info - display repository info
+   * checkout - check out a document to be modified offline
+   * cancelcheckout - cancel a previous checkout action
+   * createfolder - create a folder within a repository
+   * delete - delete a folder or document
+   * objectbyid - display an object referenced by its unique identifier 
+   * objectbyPath - display an object located at a specific path in the folder structure of the repository
+   * query - perform a CMIS query searching for objects in the repository 
+   * updateproperties - change properties of a given object
+
+All of these actions are being used by the [[%SYSTEMWEB%.CmisBrowser][CmisBrowser]] as part of its user interface. Some of these
+are best used in that context rather than performing the action manually using the %CMIS macro.
 
 =%CMIS<nop>{action="..." params}%=
 
 | *Parameter* | *Description* | *Default* |
-| action | specifies the action to be performed; can be one of =info, query, objectbypath, objectbyid, checkout, cancelcheckout= | |
+| action | specifies the action to be performed (see above); unless specified explicitly the =action= parameter is set to: \
+           =objectbyid= if there is a =object= parameter, \
+           =obkectbypath= when a =path= is specified, \
+           =query= when a =query= is given. | |
 | connection | id of a preconfigured connection to a document management system | =$Foswiki::cfg{CmisPlugin}{DefaultConnection}= |
-| repository | | |
-| header | | | 
-| format | | | 
-| separator | | | 
-| footer | | | 
-| sort | | |
-| hidenull | | |
-| errorformat | | |
-| successformat | | |
-| parentheader | | |
-| parentformat | | |
-| parentseparator | | |
-| parentfooter | | |
-| childheader | | |
-| childformat | | |
-| childseparator | | |
-| childfooter | | |
-| propheader | | | 
-| propformat | | | 
-| propseparator | | | 
-| propfooter | | | 
-| propinclude | | | 
-| propexclude | | | 
-| *object-by-path parameters* |||
-| path | | |
-| *object-by-id parameters* |||
-| object | | |
-| *query parameters* |||
-| query | | |
-| skip | | | 
-| pagesize | | | 
-| limit | | | 
+| repository | id of the repository on the server | default repository |
+| object | the object to perform the action on; name of the parent folder to create  | |
+| path | the path of an object to be displayed | |
+| query | a CMIS query expression | |
+| name, summary | when creating a new folder, the =object= parameter specifies the parent folder, =name= the name of the new folder together with an optional =summary=; \
+                  when updating an object's properties, =name= will be used to rename it, =summary= to add a summary description for this object  | |
+| header | string prepended to an output result | | 
+| format | format string to render each item found in an action | | 
+| separator | string separating each formatted item | | 
+| footer | string appended to the output result | | 
+| errorformat | string used to display error messages; a =$reason= placeholder will be replaced by the real error message | =$reason= |
+| successformat | string used to display a success message | |
+| parentheader, parentformat, parentseparator, parentfooter | format strings used to render parent objects of the current object  | parentformat="$path" |
+| childheader, childformat, childseparator, childfooter | format strings used to render child objects of a folder or search results | =$path= |
+| propheader, propformat, propseparator, propfooter | format strings used to render object properties | =$key=$value= | 
+| breadcrumbsheader, breadcrumbsformat, breadcrumbsseparator, breadcrumbsfooter | format strings used to render the =$breadcrumbs= variable | breadcrumbsformat="$name" |
+| propinclude | a regular expression that can be used to filter properties to be displayed | | 
+| propexclude | a regular expression that can be used to exclude properties not to be displayed | | 
+| skip | the number of entries to skip when displaying a result set; this is used for paging together with the =limit= parameter | 0 |
+| limit | the maximum number of search results to display; if set to 0, all results will be displayed | 0 |
+| pagesize | the number of items to fetch from the CMIS backend per transaction | -1 | 
+| sort | if set to on, results will be sorted alphabetically | on |
+| hidenull | hide results that return an empty result; if set to =off= header and footer strings will still be displayed even though the result set (of a query action) is empty | on |
 
----++ action="info"
----++ action="query"
----++ action="objectbypath"
----++ action="objectbyid"
+Format strings like =format= can take a couple of variables to display specific properties per object in the result set:
+
+   * $baseTypeId: the CMIS base type of the current object (see also $objectTypeId)
+   * $breadcrumbs: renders a breadcrumb navigation to the current object; use the breadcrumbs format strings to customize the output 
+   * $canCancelCheckOut: boolean flag indicating whether the user can cancel a checkout on the current object 
+   * $canCheckOut: boolean flag indicating whether the user can check out the current object
+   * $canDeleteObject: boolean flag indicating whether deletion of the current object is allowed
+   * $canGetProperties: boolean flag indicating whether the properties of the current object can be fetched
+   * $canMoveObject: boolean flag indicating whether the object is allowed to be moved
+   * $canUpdateProperties: boolean flag indicating write access on the object's property attributes
+   * $children: renders a list of all child objects or query results; use the child format strings to customize the output
+   * $downloadLink: renders a link with a content disposition so that the browser offers a save-as dialog when clicking on it
+   * $editLink: renders a link to edit the current resource
+   * $formatTime(...): format time properties in a human-readable format, e.g. =$format($lastModificationDate)= 
+   * $icon(size): returns a link to an icon for the current object, e.g. =$icon(16)= 
+   * $isVersionSeriesCheckedOut: boolean flag indicating whether the current object is being checked out
+   * $lastModificationDate: time when the head revision of an object was last modified
+   * $lastModifiedBy: user who last modified an object
+   * $name: the name of the object (might be different from title)
+   * $objectId: the unique identifier of an object within a repository
+   * $objectTypeId: the type identifier of the current object
+   * $pager: a navigation widget to page between results
+   * $parent: the parent property; use the parent format strings to customize the output
+   * $path: the path property of a folder
+   * $pixelXDimension: x-geometry of an image document, empty when used on everything else not a picture
+   * $pixelYDimension: y-geometry of an image
+   * $properties: list of properties of the current object; use the prop... format strings to customize the output
+   * $published: display the value of the object's atom:published property
+   * $selfLink: renders a link to the current object on the document management server
+   * $size: size in bytes of the current document
+   * $summary: summary description 
+   * $thumbnail: a thumbnail rendition if present
+   * $title: the title of the current object
+   * $versionLabel: the version string 
+   * $versionSeriesCheckedOut: date when the current object was checked out; empty if it isn't checked out
+   * $versionSeriesCheckedOutBy: user who currently checked out the object
+   * $webdavLink: link to the <nop>WebDAV-enabled resource on the document management server to edit the document using a native application
+     that is able to open the document using the <nop>WebDAV protocol directly; note that you have to configure the =webDavUrl= in your repository
+     connection to make use of this feature
+
+In addition any non-standard property can be rendered such as =$vendor:propertyName= pattern in a format string.
+
+---++ Examples
+
+---+++ Display repository info
+
+<verbatim class="tml">
+%CMIS{action="info"}%
+</verbatim>
+
+---+++ Display object properties
+
+<verbatim class="tml">
+%CMIS{
+  path="/"
+  format="$properties"
+  propformat="   * $key = $value$n" 
+}%
+</verbatim>
+
+---+++ Search all jpeg images
+
+<verbatim class="tml">
+%CMIS{
+  query="select * from cmis:document where cmis:name like '%jpg'" 
+}%
+</verbatim>
+
+---+++ Display properties of the first jpeg image found
+
+<verbatim class="tml">
+%CMIS{
+  object="%CMIS{query="select * from cmis:document where cmis:name like '%jpg'" limit="1"}%"
+  propformat="   * $key = $value$n"
+  format="
+   * link = <a href='$contentLink'>$contentLink</a>
+   * thumbnail = <img src='$thumbnail' width='100' />
+   * icon = <img src='$icon(16)' width='16' heigh='16' />
+$properties"
+}%
+</verbatim>
+
+---+++ List all children of the root folder
+
+<verbatim class="tml">
+%CMIS{
+  path="/"
+  format="   * $name$n$children"
+  childformat="      * $name"
+  childseparator="$n"
+}%
+</verbatim>
 
 ---++ Installation Instructions
 
@@ -73,11 +275,19 @@ If you have any problems, or if the extension isn't available in =configure=, th
 -->
 
 |  Author(s): | Michael Daum|
-|  Copyright: | &copy; 2010 Michael Daum http://michaeldaumconsulting.com |
+|  Copyright: | &copy; 2010-2012 Michael Daum http://michaeldaumconsulting.com |
 |  License: | [[http://www.gnu.org/licenses/gpl.html][GPL (Gnu General Public License)]] |
-|  Release: | 0.02 |
-|  Version: | 20120831 (2012-08-31) |
+|  Release: | 1.00 |
+|  Version: | 20121001 (2012-10-01) |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
-|  Dependencies: | <table class="foswikiTable" border="1"><tr><th>Name</th><th>Version</th><th>Description</th></tr><tr><td align="left">Foswiki::Plugins::RenderPlugin</td><td align="left">&gt;=3.01</td><td align="left">Required.</td></tr><tr><td align="left">LWP::UserAgent'</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">REST::Client</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">URI</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">WebService::Cmis</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">XML::LibXML'</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">Cache::FileCache</td><td align="left">&gt;0</td><td align="left">Required.</td></tr></table> |
+|  01 Oct 2012: | initial release |
+|  Dependencies: | <table class="foswikiTable" border="1"><tr><th>Name</th><th>Version</th><th>Description</th></tr><tr><td align="left">Foswiki::Contrib::JsonRpcContrib</td><td align="left">&gt;=1.22</td><td align="left">Required.</td></tr><tr><td align="left">Foswiki::Plugins::FilterPlugin</td><td align="left">&gt;=3.0</td><td align="left">Required.</td></tr><tr><td align="left">Foswiki::Plugins::RenderPlugin</td><td align="left">&gt;=3.01</td><td align="left">Required.</td></tr><tr><td align="left">Foswiki::Plugins::TopicInteractionPlugin</td><td align="left">&gt;=3.20</td><td align="left">Required.</td></tr><tr><td align="left">Cache::FileCache</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">File::MMagic</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">LWP::UserAgent</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">REST::Client</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">URI</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">WebService::Cmis</td><td align="left">&gt;0</td><td align="left">Required.</td></tr><tr><td align="left">XML::LibXML</td><td align="left">&gt;0</td><td align="left">Required.</td></tr></table> |
 |  Home page: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
+
+%META:FILEATTACHMENT{name="CmisPluginSnap1.png" attachment="CmisPluginSnap1.png" attr="" comment="" date="1348221313" size="47055" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="CmisPluginSnap2.png" attachment="CmisPluginSnap2.png" attr="" comment="" date="1348221314" size="37684" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="CmisPluginSnap3.png" attachment="CmisPluginSnap3.png" attr="" comment="" date="1348221315" size="45230" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="CmisPluginSnap4.png" attachment="CmisPluginSnap4.png" attr="" comment="" date="1348221317" size="30576" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="CmisPluginSnap5.png" attachment="CmisPluginSnap5.png" attr="" comment="" date="1348221318" size="19085" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="CmisPluginSnap6.png" attachment="CmisPluginSnap6.png" attr="" comment="" date="1348496064" size="40819" user="ProjectContributor" version="1"}%

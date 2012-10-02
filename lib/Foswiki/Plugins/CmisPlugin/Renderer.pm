@@ -434,7 +434,7 @@ sub formatTime {
 
   $time ||= 0;
 
-  if ($time =~ /^(-?\d+)([+-].*)?$/) {
+  if ($time =~ /^(-?\d+)(Z|[-+]\d\d(?::\d\d)?)?$/) {
     $time = $1;    # SMELL: strips off timezone
   } else {
     $time = Foswiki::Time::parseTime($time);
