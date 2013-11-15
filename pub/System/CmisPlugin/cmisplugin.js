@@ -1,0 +1,1 @@
+jQuery(function(a){a(".cmisBrowser").livequery(function(){var b=a(this);b.find(".cmisResults .cmisObject").hover(function(){a(this).addClass("cmisHover")},function(){a(this).removeClass("cmisHover")})})});

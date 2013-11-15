@@ -1,0 +1,8 @@
+Foswiki::Plugins::RenderPlugin,>=3.01,1,perl,Required.
+LWP::UserAgent',>0,1,cpan,Required.
+REST::Client,>0,1,cpan,Required.
+URI,>0,1,cpan,Required.
+WebService::Cmis,>0,1,cpan,Required.
+XML::LibXML',>0,1,cpan,Required.
+Cache::FileCache,>0,1,cpan,Required.
+
